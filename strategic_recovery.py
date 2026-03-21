@@ -27,27 +27,27 @@ def get_master_data():
         'Macro Impact': ['Hypothetical 10% Peak Unemployment & 40% CRE decline' for _ in range(9)]
     })
     
-    # Strategic Vendor List
+    # Strategic Vendor List - FIXED: Added missing list values
     today = datetime.now().date()
     vendor_data = pd.DataFrame({
         'Vendor Name': ['NRG (National)', 'Apex Collections', 'Lexington Legal', 'Sterling Assets', 'Summit SME'],
         'Tier': ['Tier 1', 'Tier 1', 'Tier 2 (Legal)', 'Tier 2 (Legal)', 'Tier 3'],
         'Core Segment': ['Mass Market Card', 'Retail Services', 'High-FICO Litigation', 'High-Balance Tail', 'Commercial/SME'],
-        'Efficiency (%)':,
+        'Efficiency (%)': [88, 82, 74, 69, 78], 
         'Capital Drag (bps)': [1.2, 2.4, 6.8, 8.2, 3.1],
-        'Placement ($M)':,
-        'Renewal Date': [today + timedelta(days=x) for x in]
+        'Placement ($M)': [450, 320, 150, 110, 85],
+        'Renewal Date': [today + timedelta(days=x) for x in [45, 90, 15, 120, 200]]
     })
     
     # Jurisdictional Data for Interactive Map
     juris_dict = {
         'NY': {'Risk': '🟡 Moderate', 'Focus': 'Fair Lending', 'Update': 'AML reporting shift noted Feb 2026.'},
         'CA': {'Risk': '🔴 High', 'Focus': 'Privacy/ADMT', 'Update': 'Jan 2026 CPPA compliance audit active.'},
-        'TX': {'Risk': '🟢 Stable', 'Focus': 'Documentation', 'Update': 'Process aligned with national standards.'},
-        'FL': {'Risk': '🔴 Elevated', 'Focus': 'Debt Collection', 'Update': 'L2 audit scheduled Q2 2026 due to vendor drift.'},
+        'FL': {'Risk': '🔴 Elevated', 'Focus': 'Debt Collection', 'Update': 'Vendor drift remediation ongoing.'},
         'Federal': {'Risk': '🟡 Moderate', 'Focus': 'Data Controls', 'Update': 'OCC terminated Resource Review Dec 2025.'}
     }
-    geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions':})
+    # FIXED: Added missing list values for 'Exceptions'
+    geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions': [2, 14, 5, 21]})
     
     return peers, stress_df, vendor_data, juris_dict, geo_df
 
@@ -71,10 +71,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # --- TAB 1: EXECUTIVE CAPITAL REPORT ---
 with tab1:
     st.header("Executive Capital & Shareholder Value Report")
-    st.markdown("""
-    > **Strategic Context:** Recovery Operations is a **Capital Engine**. Every $100M in recovered 'long-tail' yield directly lowers 
-    Risk-Weighted Assets (RWA), providing the capital headroom necessary to hit our **11% ROTCE target** by year-end 2026.
-    """)
+    st.markdown("> **Strategic Context:** Recovery Operations is a **Capital Engine**. Every $100M in recovered 'long-tail' yield directly lowers Risk-Weighted Assets (RWA), providing the capital headroom necessary to hit our **11% ROTCE target** by year-end 2026.")
     
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("CET1 Capital Ratio", "13.2%", "+160bps Buffer")
@@ -90,37 +87,25 @@ with tab1:
 # --- TAB 2: PEER STRATEGY & STRESS ---
 with tab2:
     st.header("The Competitive Advantage: Peer & Stress Strategy")
-    st.markdown("""
-    > **Strategic Context:** While industry rivals face rising delinquency, Citi’s High-FICO tail strategy maintains resilience. 
-    Even under the **Severely Adverse** (10% unemployment) scenario, our litigation yield significantly outperforms asset liquidation.
-    """)
+    st.markdown("> **Strategic Context:** While industry rivals face rising delinquency, Citi’s High-FICO tail strategy maintains resilience. Even under the **Severely Adverse** (10% unemployment) scenario, our litigation yield significantly outperforms asset liquidation.")
     
     col_p, col_s = st.columns(2)
     with col_p:
         st.plotly_chart(px.bar(peers, x='Bank', y='ROTCE (%)', color='Bank', title="Competitive ROTCE Benchmarking"), use_container_width=True)
     with col_s:
-        # Hover-over description integrated
-        fig_stress = px.line(stress_df, x='Quarter', y='Severely Adverse (9Q)', 
-                             title="9-Quarter Severe NCO Projection (DFAST)",
-                             hover_data={'Macro Impact': True})
+        fig_stress = px.line(stress_df, x='Quarter', y='Severely Adverse (9Q)', title="9-Quarter Severe NCO Projection (DFAST)", hover_data={'Macro Impact': True})
         st.plotly_chart(fig_stress, use_container_width=True)
 
 # --- TAB 3: VENDOR MANAGEMENT ---
 with tab3:
     st.header("Vendor Performance & Capital Optimizer")
-    st.markdown("""
-    > **Strategic Context:** We reallocate funds from high-drag mass agencies to high-yield legal partners. 
-    **Red Renewal Dates** indicate imminent contract risks requiring MD approval for Q2 placement continuity.
-    """)
+    st.markdown("> **Strategic Context:** We reallocate funds from high-drag mass agencies to high-yield legal partners. **Red Renewal Dates** indicate imminent contract risks requiring MD approval for Q2 placement continuity.")
 
     def color_renewals(val):
         color = 'red' if val < (datetime.now().date() + timedelta(days=30)) else 'black'
         return f'color: {color}; font-weight: bold' if color == 'red' else ''
     
-    # Hide index for clean executive table
-    st.dataframe(vend_df.style.applymap(color_renewals, subset=['Renewal Date'])
-                .background_gradient(subset=['Efficiency (%)'], cmap='YlGn'),
-                hide_index=True, use_container_width=True)
+    st.dataframe(vend_df.style.applymap(color_renewals, subset=['Renewal Date']).background_gradient(subset=['Efficiency (%)'], cmap='YlGn'), hide_index=True, use_container_width=True)
     
     st.divider()
     st.subheader("Strategic Placement Swap Simulator")
@@ -128,30 +113,27 @@ with tab3:
     with sim1: source = st.selectbox("From (Source):", vend_df['Vendor Name'], index=3)
     with sim2: target = st.selectbox("To (Target):", vend_df['Vendor Name'], index=2)
     
-    gain = (vend_df[vend_df['Vendor Name']==target]['Efficiency (%)'].values - 
-            vend_df[vend_df['Vendor Name']==source]['Efficiency (%)'].values) * 0.1
+    # FIXED: Extract scalar values for calculation
+    s_val = vend_df[vend_df['Vendor Name']==source]['Efficiency (%)'].iloc[0]
+    t_val = vend_df[vend_df['Vendor Name']==target]['Efficiency (%)'].iloc[0]
+    gain = (t_val - s_val) * 0.1
     st.metric("Net Recovery Gain/Loss ($M)", f"${gain:.2f}M")
 
 # --- TAB 4: INTERACTIVE REGULATORY HEATMAP ---
 with tab4:
     st.header("Jurisdictional Exceptions Map")
-    st.markdown("""
-    > **Strategic Context:** Transformation progress is tracked by **Red-to-Green migration**. 
-    **Click a state** to drill down into 2026 compliance hurdles, such as CA ADMT or NY Fair Lending.
-    """)
+    st.markdown("> **Strategic Context:** Transformation progress is tracked by **Red-to-Green migration**. 👇 **Click a state** to drill down into 2026 compliance hurdles, such as CA ADMT or NY Fair Lending.")
 
-    fig_map = px.choropleth(geo_df, locations='State', locationmode="USA-states", 
-                           color='Exceptions', scope="usa", color_continuous_scale="Reds")
+    fig_map = px.choropleth(geo_df, locations='State', locationmode="USA-states", color='Exceptions', scope="usa", color_continuous_scale="Reds")
     sel = st.plotly_chart(fig_map, on_select="rerun")
 
     state = "Federal"
     if sel and "selection" in sel and sel["selection"]["points"]:
-        state = sel["selection"]["points"]["location"]
+        state = sel["selection"]["points"][0]["location"]
 
-    st.subheader(f"Detailed Risk Matrix: {state}")
+    st.subheader(f"📍 Detailed Risk Matrix: {state}")
     risk_info = juris_dict.get(state, juris_dict["Federal"])
     
-    # Clean table with explicit headers and hidden index
     risk_tbl = pd.DataFrame({
         "Strategic Category": ["Jurisdiction", "Risk Level", "Primary Focus", "Recent Update"],
         "Operational Detail": [state, risk_info['Risk'], risk_info['Focus'], risk_info['Update']]
@@ -165,8 +147,4 @@ with tab5:
     st.write("* **ROTCE Catalyst:** Long-tail recovery yield is a primary driver for the **10.5% waypoint**.")
     st.write("* **Capital Strength:** **13.2% CET1 ratio** confirms successful RWA optimization efforts.")
     st.write("* **Regulatory Milestone:** Dec 2025 OCC termination signals risk control stability.")
-    components.html("""
-    <script>function print_summary() { window.print(); }</script>
-    <button onclick="print_summary()" style="background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
-        Download PDF Summary
-    </button>""", height=100)
+    components.html("""<script>function print_summary() { window.print(); }</script><button onclick="print_summary()" style="background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">Download PDF Summary</button>""", height=100)
