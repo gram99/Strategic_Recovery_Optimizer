@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 # 1. PAGE CONFIGURATION
 st.set_page_config(page_title="Citi Strategic Recovery & Capital Optimizer", layout="wide")
 
-# 2. DATA ENGINE (Strategic Vendor & Peer Data)
+# 2. DATA ENGINE
 @st.cache_data
 def get_master_data():
     # Peer Benchmarking
@@ -23,21 +23,29 @@ def get_master_data():
     nco_severe = [2.4, 3.8, 5.2, 7.1, 8.4, 7.9, 6.5, 5.1, 4.2] 
     stress_df = pd.DataFrame({'Quarter': quarters, 'Severely Adverse (9Q)': nco_severe})
     
-    # Strategic Vendor List (Told as a Story)
-    today = datetime.now()
+    # Strategic Vendor List
+    today = datetime.now().date()
     vendor_data = pd.DataFrame({
         'Vendor Name': ['NRG (National)', 'Apex Collections', 'Lexington Legal', 'Sterling Assets', 'Summit SME'],
         'Tier': ['Tier 1', 'Tier 1', 'Tier 2 (Legal)', 'Tier 2 (Legal)', 'Tier 3'],
         'Core Segment': ['Mass Market Card', 'Retail Services', 'High-FICO Litigation', 'High-Balance Tail', 'Commercial/SME'],
         'Efficiency %': [92, 88, 74, 68, 81],
         'Capital Drag (bps)': [1.2, 2.4, 6.8, 8.2, 3.1],
-        'Placement ($M)': [150, 120, 85, 45, 30],
-        'Renewal Date': [(today + timedelta(days=x)).date() for x in [45, 180, 12, 365, 90]]
+        'Placement ($M)': [150, 120, 85, 60, 45],
+        'Renewal Date': [today + timedelta(days=x) for x in [45, 120, 15, 200, 310]]
     })
     
-    return peers, stress_df, vendor_data
+    # Regulatory Timeline
+    timeline_data = pd.DataFrame([
+        dict(Event="2020 Consent Order Issued", Date="2020-10-07", Status="Ongoing"),
+        dict(Event="OCC Resource Review Amendment", Date="2024-07-10", Status="Completed"),
+        dict(Event="Termination of OCC Amendment", Date="2025-12-15", Status="Success"),
+        dict(Event="CA ADMT Compliance Deadline", Date="2026-01-01", Status="Active"),
+    ])
+    
+    return peers, stress_df, vendor_data, timeline_data
 
-peer_df, stress_df, vend_df = get_master_data()
+peer_df, stress_df, vend_df, timeline_df = get_master_data()
 
 # 3. GLOBAL SIDEBAR
 with st.sidebar:
@@ -60,58 +68,43 @@ with tabs[0]:
     c2.metric("Economic Profit (EP)", "$1.2B", "+5.2% YoY")
     c3.metric("RWA Optimization", "$165M", "Net Recovery Impact")
 
-# --- TAB 2: PEER & STRESS ANALYSIS ---
+# --- TAB 2: PEER & STRESS ---
 with tabs[1]:
     col_p, col_s = st.columns(2)
     with col_p:
-        st.subheader("ROTCE Peer Benchmarking")
-        st.plotly_chart(px.bar(peer_df, x='Bank', y='ROTCE (%)', color='Bank'), use_container_width=True)
+        st.plotly_chart(px.bar(peer_df, x='Bank', y='ROTCE (%)', color='Bank', title="ROTCE Peer Benchmarking"), use_container_width=True)
     with col_s:
-        st.subheader("9-Quarter Severe NCO Projection")
-        st.plotly_chart(px.line(stress_df, x='Quarter', y='Severely Adverse (9Q)'), use_container_width=True)
+        st.plotly_chart(px.line(stress_df, x='Quarter', y='Severely Adverse (9Q)', title="9Q Severe NCO Projection"), use_container_width=True)
 
-# --- TAB 3: VENDOR MANAGEMENT OFFICE (VMO) & SWAP SIMULATOR ---
+# --- TAB 3: VENDOR MANAGEMENT ---
 with tabs[2]:
     st.header("🏢 Vendor Performance & Capital Optimizer")
-    
-    # Part A: The Strategic List & Renewal Timeline
-    st.subheader("📍 Active Vendor Network & Contract Status")
     def color_renewals(val):
         color = 'red' if val < (datetime.now().date() + timedelta(days=30)) else 'black'
         return f'color: {color}; font-weight: bold' if color == 'red' else ''
-
-    st.dataframe(vend_df.style.applymap(color_renewals, subset=['Renewal Date'])
-                .background_gradient(subset=['Efficiency %'], cmap='YlGn')
-                .format({'Capital Drag (bps)': '{:.1f}'}))
-    st.caption("🔴 Red dates indicate contracts expiring within 30 days.")
-
+    
+    st.dataframe(vend_df.style.applymap(color_renewals, subset=['Renewal Date']).background_gradient(subset=['Efficiency %'], cmap='YlGn'))
+    
     st.divider()
-
-    # Part B: THE VENDOR SWAP SIMULATOR
     st.subheader("🔄 Strategic Placement Swap Simulator")
-    st.markdown("Estimate the impact of shifting $10M in placements between agencies.")
-    
     sim_c1, sim_c2, sim_c3 = st.columns(3)
-    with sim_c1:
-        source_v = st.selectbox("From (Source Vendor):", vend_df['Vendor Name'], index=3) # Sterling Assets
-    with sim_c2:
-        target_v = st.selectbox("To (Target Vendor):", vend_df['Vendor Name'], index=2) # Lexington Legal
+    with sim_c1: source_v = st.selectbox("From:", vend_df['Vendor Name'], index=3)
+    with sim_c2: target_v = st.selectbox("To:", vend_df['Vendor Name'], index=2)
     
-    # Calculate Swap Impact
-    s_eff = vend_df[vend_df['Vendor Name'] == source_v]['Efficiency %'].values
-    t_eff = vend_df[vend_df['Vendor Name'] == target_v]['Efficiency %'].values
-    eff_gain = (t_eff - s_eff) * 0.1 # Yield on $10M
+    s_eff = vend_df[vend_df['Vendor Name'] == source_v]['Efficiency %'].values[0]
+    t_eff = vend_df[vend_df['Vendor Name'] == target_v]['Efficiency %'].values[0]
+    eff_gain = (t_eff - s_eff) * 0.1
     
     with sim_c3:
         st.metric("Net Recovery Gain/Loss", f"${eff_gain:.2f}M", delta=f"{t_eff-s_eff}% Efficiency Delta")
-        st.write("**Capital Impact:** Lowering RWA via higher legal yield.")
 
 # --- TAB 4: REGULATORY HEATMAP ---
 with tabs[3]:
-    st.header("Jurisdictional Compliance Matrix")
-    geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions':})
+    st.header("Jurisdictional Exceptions Map")
+    geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions': [2, 14, 5, 21]})
     st.plotly_chart(px.choropleth(geo_df, locations='State', locationmode="USA-states", color='Exceptions', scope="usa", color_continuous_scale="Reds"), use_container_width=True)
     
+    st.subheader("📍 Jurisdictional Risk Matrix")
     risk_matrix = {
         "Jurisdiction": ["Federal (OCC/Fed)", "California", "Florida"],
         "Risk": ["🟡 Moderate", "🔴 High", "🔴 Elevated"],
@@ -121,22 +114,14 @@ with tabs[3]:
 
 # --- TAB 5: USER GUIDE ---
 with tabs[4]:
-    st.header("📖 Strategic User Guide")
-    st.markdown("""
-    ### **Executive Instructions**
-    * **Vendor Management (Tab 3):** Use the **Swap Simulator** to defend reallocating funds to **Tier 2 Legal** partners when 'long-tail' recovery yield outpaces mass collection efficiency.
-    * **Contract Status:** Monitor the red-coded renewal dates to ensure zero-gap in placement coverage.
-    """)
+    st.header("📖 Strategic User Guide & Timeline")
+    fig_time = px.timeline(timeline_df, x_start="Date", x_end="Date", y="Event", color="Status")
+    fig_time.update_yaxes(autorange="reversed")
+    st.plotly_chart(fig_time, use_container_width=True)
 
-# --- TAB 6: EXECUTIVE LEAVE-BEHIND ---
+# --- TAB 6: LEAVE-BEHIND ---
 with tabs[5]:
     st.header("🖨️ Executive Leave-Behind Summary")
     st.markdown("#### **Strategic Positioning (Q1 2026)**")
     st.write("* **Vendor Strategy:** Lexington Legal identified as primary growth partner for High-FICO tail.")
-    st.write("* **Risk Mitigation:** Dec 2025 OCC milestone confirms transformation stability.")
-    
-    components.html("""
-    <script>function print_summary() { window.print(); }</script>
-    <button onclick="print_summary()" style="background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">
-        Download Summary as PDF
-    </button>""", height=50)
+    components.html("<script>function print_summary() { window.print(); }</script><button onclick='print_summary()' style='background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;'>Download PDF</button>", height=50)
