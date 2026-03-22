@@ -12,15 +12,14 @@ st.set_page_config(page_title="Strategic Recovery & Capital Optimizer", layout="
 # --- LOGIN GATEWAY ---
 def check_password():
     if "password_correct" not in st.session_state:
-        st.title("🏦 Citi Recovery Strategy Gateway")
-        st.markdown("### **Executive Access Required**")
+        st.title("Recovery Strategy Gateway")
         st.text_input("Enter Access Code:", type="password", key="password_input")
         if st.button("Login"):
-            if st.session_state["password_input"] == "Optimizer2026":
+            if st.session_state["password_input"] == "Recovery2026":
                 st.session_state["password_correct"] = True
                 st.rerun()
             else:
-                st.error("Incorrect Access Code.")
+                st.error("Access Code Incorrect.")
         return False
     return True
 
@@ -35,25 +34,25 @@ if check_password():
             'WARR': [1.05, 5.20, 1.35, 6.45, 1.22, 6.10]
         })
         
-        # Peer Benchmarking
+        # Peer Metrics Table
         peers = pd.DataFrame({
-            'Bank': ['JPM Chase', 'Amex', 'Cap One', 'BofA', 'Citi (2026)'],
+            'Bank Indicator': ['JPM Chase', 'Amex', 'Cap One', 'BofA', 'Citi (2026 Target)'],
             'ROTCE (%)': [22.0, 30.0, 15.2, 14.5, 10.5],
-            'Current_NCO': [1.5, 1.9, 4.8, 2.1, 2.4]
+            'Current NCO (%)': [1.5, 1.9, 4.8, 2.1, 2.4]
         })
         
-        # Vendor Data (Story-Driven Tiers)
+        # Vendor & Budget Data
         today = datetime.now().date()
         vendor_data = pd.DataFrame({
             'Vendor Name': ['NRG (National)', 'Apex Collections', 'Lexington Legal', 'Sterling Assets', 'Summit SME'],
             'Tier': ['Tier 1', 'Tier 1', 'Tier 2', 'Tier 2', 'Tier 3'],
-            'Efficiency (%)': [92, 88, 74, 68, 81],
-            'YTD Spend ($M)': [120, 95, 45, 38, 22],
-            'Placement ($M)': [850, 720, 310, 290, 115],
-            'Renewal Date': [today + timedelta(days=x) for x in [120, 45, 15, 200, 365]]
+            'Efficiency (%)':,
+            'YTD Spend ($M)':,
+            'Capacity ($M)':,
+            'Renewal Date': [today + timedelta(days=x) for x in]
         })
         
-        # Jurisdictional Details
+        # Jurisdictional Data
         juris_dict = {
             'NY': {'Risk': '🟡 Moderate', 'Focus': 'Fair Lending', 'Update': 'Data remediation Dec 2025.'},
             'CA': {'Risk': '🔴 High', 'Focus': 'Privacy/ADMT', 'Update': 'Jan 2026 CPPA audit active.'},
@@ -61,7 +60,7 @@ if check_password():
             'FL': {'Risk': '🔴 Elevated', 'Focus': 'Debt Collection', 'Update': 'L2 drift remediation ongoing.'},
             'Federal': {'Risk': '🟡 Moderate', 'Focus': 'OCC Oversight', 'Update': 'Resource Review terminated Dec 2025.'}
         }
-        geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions': [12, 45, 5, 38]})
+        geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions':})
         
         return warr_history, peers, vendor_data, juris_dict, geo_df
 
@@ -70,7 +69,7 @@ if check_password():
     # 3. GLOBAL SIDEBAR
     with st.sidebar:
         st.image("https://www.citigroup.com", width=80)
-        st.header("Strategic Controls")
+        st.header("Executive Hub")
         st.divider()
         if st.button("Logout"):
             del st.session_state["password_correct"]
@@ -81,112 +80,122 @@ if check_password():
         "Executive Capital Report", "Peer Strategy & Stress", "Vendor Management", "Regulatory Heatmap", "LEAVE-BEHIND"
     ])
 
-    # --- TAB 1: EXECUTIVE CAPITAL REPORT ---
+    # --- TAB 1: EXECUTIVE CAPITAL REPORT (TRENDLINES & DATA TABLE) ---
     with tab1:
         st.header("Executive Capital & Shareholder Value Report")
-        st.markdown("> **Strategic Context:** Recovery yield optimization acts as a capital engine. Use the simulator below to see how increasing our yield 'unlocks' CET1 basis points.")
         
-        # Capital Lift Simulator
+        # Capital Simulation
         recovery_lift = st.slider("Target Yield Optimization Lift (%)", 0, 10, 2)
-        rwa_relief = 165 * (1 + (recovery_lift/100))
-        cet1_impact_bps = (rwa_relief / 13500) * 100 # Scaling against $1.35T RWA
+        cet1_bps = ((165 * (1 + (recovery_lift/100))) / 13500) * 100
         
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("CET1 Capital Ratio", "13.2%", f"+{cet1_impact_bps:.2f} bps")
+        c1.metric("CET1 Capital Ratio", "13.2%", f"+{cet1_bps:.2f} bps")
         c2.metric("2026 ROTCE Target", "10.5%", "On Track")
-        c3.metric("RWA Relief ($M)", f"${rwa_relief:.1f}M", f"{recovery_lift}% Opt")
+        c3.metric("RWA Optimization", "$165M", "Net Recovery Impact")
         c4.metric("Economic Profit", "$1.2B", "+5.2% YoY")
         
         st.divider()
-        st.subheader("Historical WARR Risk Migration (2023 - 2026)")
+        st.subheader("Historical WARR Migration with Risk Trendlines")
+        
+        # Creating Bar Chart with Trendlines
         fig_warr = px.bar(warr_df, x="Year", y="WARR", color="Segment", barmode="group",
                           color_discrete_map={'Branded Cards': '#007bff', 'Retail Services': '#ff4b4b'})
+        
+        # Adding Synthetic Trendlines for each segment
+        fig_warr.add_trace(go.Scatter(x=['2023-24', '2024-25', '2025-26'], y=[1.05, 1.35, 1.22], name="Branded Trend", line=dict(color="#007bff", dash='dot')))
+        fig_warr.add_trace(go.Scatter(x=['2023-24', '2024-25', '2025-26'], y=[5.20, 6.45, 6.10], name="Retail Trend", line=dict(color="#ff4b4b", dash='dot')))
+        
         st.plotly_chart(fig_warr, use_container_width=True)
 
-    # --- TAB 2: PEER STRATEGY & STRESS ---
-    with tab2:
-        st.header("Competitive Resilience & Stress Strategy")
-        st.markdown("> **The Story:** Simulate a macro shock to see Citi's resilience gap compared to consumer-heavy lenders.")
-        
-        ctrl, chart = st.columns([1, 2])
-        with ctrl:
-            stress = st.select_slider("Recession Severity", options=["Mild", "Moderate", "Severely Adverse"])
-            peer = st.selectbox("Compare Against:", peer_df['Bank'].unique(), index=2) # Cap One
-            
-            multi = {"Mild": 1.4, "Moderate": 1.8, "Severely Adverse": 2.8}[stress]
-            citi_stressed = 2.4 * multi
-            peer_stressed = peer_df[peer_df['Bank']==peer]['Current_NCO'].values[0] * multi
-            
-            st.metric("Resilience Gap", f"{peer_stressed-citi_stressed:.1f}%", delta="Lower is Better", delta_color="inverse")
-        
-        with chart:
-            quarters = [f"Q{i} 2024" if i < 3 else f"Q{i-2} 2025" for i in range(1, 10)]
-            nco_curve = [2.4 * (1 + (i*0.08)*multi) for i in range(len(quarters))]
-            st.plotly_chart(px.line(x=quarters, y=nco_curve, title=f"9Q NCO Projection: {stress}"), use_container_width=True)
+        st.subheader("Historical WARR Data Points")
+        st.dataframe(warr_df.pivot(index="Year", columns="Segment", values="WARR"), use_container_width=True)
 
-    # --- TAB 3: VENDOR MANAGEMENT & SWAP ---
+    # --- TAB 2: PEER STRATEGY & DYNAMIC STRESS ---
+    with tab2:
+        st.header("Competitive Advantage & Dynamic Stress Resilience")
+        st.markdown("> **The Story:** Adjust the slider to see how Citi's 'long-tail' recovery yield protects us during a macro shock.")
+        
+        stress_severity = st.select_slider("Select Macro Scenario Severity", options=["Baseline", "Mild", "Moderate", "Severely Adverse"])
+        
+        col_table, col_graph = st.columns([1, 1.5])
+        
+        with col_table:
+            st.subheader("Peer Benchmarking")
+            st.dataframe(peer_df, hide_index=True, use_container_width=True)
+
+        with col_graph:
+            # Dynamic Stress Logic
+            multi = {"Baseline": 1.0, "Mild": 1.3, "Moderate": 1.8, "Severely Adverse": 2.8}[stress_severity]
+            quarters = [f"Q{i} 2024" if i < 3 else f"Q{i-2} 2025" for i in range(1, 10)]
+            
+            # Curve calculation that actually reacts to the slider
+            nco_base = 2.4
+            curve = [nco_base * (1 + (i*0.1) * (multi-0.5)) for i in range(len(quarters))]
+            
+            fig_stress = px.line(x=quarters, y=curve, title=f"9Q NCO Projection: {stress_severity} Environment",
+                                labels={'x': 'Quarter', 'y': 'NCO Ratio (%)'})
+            fig_stress.add_hline(y=8.0, line_dash="dash", line_color="red", annotation_text="DFAST Threshold")
+            st.plotly_chart(fig_stress, use_container_width=True)
+
+    # --- TAB 3: VENDOR MANAGEMENT & SPEEDOMETER ---
     with tab3:
         st.header("Vendor Performance & Budget Capacity")
         
         total_budget = 500 
         ytd_spend = vend_df['YTD Spend ($M)'].sum()
         
-        b1, b2 = st.columns([1, 1.5])
-        with b1:
-            fig_gauge = go.Figure(go.Indicator(
-                mode = "gauge+number", value = ytd_spend,
-                gauge = {'axis': {'range': [None, total_budget]}, 'bar': {'color': "#007bff"}}))
-            fig_gauge.update_layout(height=250)
-            st.plotly_chart(fig_gauge, use_container_width=True)
-        with b2:
-            # CLEAN TABLE: Hiding the index column
-            st.dataframe(vend_df, hide_index=True, use_container_width=True)
+        # Restored Full-Size Speedometer
+        fig_gauge = go.Figure(go.Indicator(
+            mode = "gauge+number+delta", value = ytd_spend,
+            title = {'text': "Recovery OpEx Budget Utilization ($M)"},
+            delta = {'reference': total_budget, 'increasing': {'color': "red"}},
+            gauge = {'axis': {'range': [None, total_budget]}, 
+                     'bar': {'color': "#007bff"},
+                     'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 450}}))
+        st.plotly_chart(fig_gauge, use_container_width=True)
+
+        st.subheader("Active Vendor Network")
+        st.dataframe(vend_df, hide_index=True, use_container_width=True)
 
         st.divider()
-        st.subheader("Placement Swap Simulator")
+        st.subheader("Strategic Placement Swap Simulator")
         s1, s2, s3 = st.columns(3)
-        with s1: src = st.selectbox("From:", vend_df['Vendor Name'], index=3)
-        with s2: tgt = st.selectbox("To:", vend_df['Vendor Name'], index=2)
+        with s1: src = st.selectbox("From (Source):", vend_df['Vendor Name'], index=3)
+        with s2: tgt = st.selectbox("To (Target):", vend_df['Vendor Name'], index=2)
         
-        gain = (vend_df[vend_df['Vendor Name']==tgt]['Efficiency (%)'].values[0] - 
-                vend_df[vend_df['Vendor Name']==src]['Efficiency (%)'].values[0]) * 0.1
+        gain = (vend_df[vend_df['Vendor Name']==tgt]['Efficiency (%)'].values - 
+                vend_df[vend_df['Vendor Name']==src]['Efficiency (%)'].values) * 0.1
         with s3:
-            st.metric("Recovery Gain/Loss", f"${gain:.2f}M", delta="on $10M shift")
+            st.metric("Net Recovery Gain/Loss", f"${gain:.2f}M", delta="on $10M shift")
 
     # --- TAB 4: INTERACTIVE REGULATORY HEATMAP ---
     with tab4:
         st.header("Jurisdictional Governance")
-        st.markdown("**Click a state** to drill down into localized risk remediation.")
-        
         fig_map = px.choropleth(geo_df, locations='State', locationmode="USA-states", color='Exceptions', scope="usa", color_continuous_scale="Reds")
-        # RERUN on select to update the table below
         sel = st.plotly_chart(fig_map, on_select="rerun")
         
-        # Robust Selection Logic
         state = "Federal"
-        try:
-            if sel and "selection" in sel and sel["selection"]["points"]:
-                state = sel["selection"]["points"][0]["location"]
-        except (KeyError, IndexError):
-            state = "Federal"
+        if sel and "selection" in sel and sel["selection"]["points"]:
+            state = sel["selection"]["points"]["location"]
         
         st.divider()
         st.subheader(f"Detailed Risk Matrix: {state}")
         info = juris_dict.get(state, juris_dict["Federal"])
         
-        # CLEAN TABLE: Hiding the index column
+        # Hiding row index
         risk_tbl = pd.DataFrame({
-            "Category": ["Jurisdiction", "Risk Level", "Focus Area", "Latest Update"],
+            "Category": ["Jurisdiction", "Risk Level", "Focus Area", "Latest Status"],
             "Detail": [state, info['Risk'], info['Focus'], info['Update']]
         })
         st.table(risk_tbl.style.hide(axis="index"))
 
     # --- TAB 5: LEAVE-BEHIND ---
     with tab5:
-        st.header("Executive Leave-Behind")
+        st.header("🖨️ Executive Leave-Behind")
         st.markdown("#### **Strategic Positioning Summary (Q1 2026)**")
-        st.write(f"- **Yield-to-Capital:** Current lift simulation adds **{cet1_impact_bps:.2f} bps** to CET1 headroom.")
-        st.write("- **Portfolio Health:** WARR stabilizes at 1.22 after 2024 optimization.")
-        st.divider()
-        st.warning("**MRM Disclosure:** Synthetic metrics anchored in public 2024-2025 Citi disclosures.")
+        st.write(f"- **Capital Impact:** Current lift simulation adds **{cet1_bps:.2f} bps** to CET1 headroom.")
+        st.write(f"- **Budget Control:** YTD Spend at ${ytd_spend}M ({(ytd_spend/total_budget)*100:.1f}% capacity).")
         components.html("<script>function print_summary(){ window.print(); }</script><button onclick='print_summary()' style='background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;'>Download PDF Summary</button>", height=80)
+
+
+
