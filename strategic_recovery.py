@@ -44,23 +44,22 @@ def get_master_data():
     vendor_data = pd.DataFrame({
         'Vendor Name': ['NRG (National)', 'Apex Collections', 'Lexington Legal', 'Sterling Assets', 'Summit SME'],
         'Tier': ['Tier 1', 'Tier 1', 'Tier 2 (Legal)', 'Tier 2 (Legal)', 'Tier 3'],
-        'Core Segment': ['Mass Market Card', 'Retail Services', 'High-FICO Litigation', 'High-Balance Tail', 'Commercial/SME'],
         'Efficiency (%)': [94.2, 88.5, 76.1, 72.4, 84.8],
         'Capital Drag (bps)': [1.2, 2.4, 6.8, 8.2, 3.1],
         'YTD Spend ($M)': [142.5, 98.2, 64.1, 55.8, 28.4],
         'Placement ($M)': [220.0, 150.0, 45.0, 40.0, 45.0],
-        'Renewal Date': [today + timedelta(days=x) for x in [120, 45, 15, 200, 310]]
+        'Renewal Date': [today + timedelta(days=x) for x in [12, 45, 8, 90, 120]]
     })
     
     # Jurisdictional Data
     juris_dict = {
-        'NY': {'Risk': '🟡 Moderate', 'Focus': 'Fair Lending', 'Update': 'Data remediation Dec 2025.'},
-        'CA': {'Risk': '🔴 High', 'Focus': 'Privacy/ADMT', 'Update': 'Jan 2026 CPPA audit active.'},
-        'FL': {'Risk': '🔴 Elevated', 'Focus': 'Debt Collection', 'Update': 'L2 drift remediation ongoing.'},
-        'TX': {'Risk': '🟢 Stable', 'Focus': 'National Standards', 'Update': 'Process aligned.'},
-        'Federal': {'Risk': '🟡 Moderate', 'Focus': 'OCC Oversight', 'Update': 'Resource Review terminated Dec 2025.'}
+        'NY': {'Risk': '🟡 Moderate', 'Focus': 'Fair Lending', 'Update': 'Data remediation Dec 2025.', 'Vol': 8},
+        'CA': {'Risk': '🔴 High', 'Focus': 'Privacy/ADMT', 'Update': 'Jan 2026 CPPA audit active.', 'Vol': 24},
+        'FL': {'Risk': '🔴 Elevated', 'Focus': 'Debt Collection', 'Update': 'Vendor remediation active.', 'Vol': 18},
+        'TX': {'Risk': '🟢 Stable', 'Focus': 'National Standards', 'Update': 'Process aligned.', 'Vol': 4},
+        'Federal': {'Risk': '🟡 Moderate', 'Focus': 'OCC Oversight', 'Update': 'Resource Review terminated Dec 2025.', 'Vol': 52}
     }
-    geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions': [4, 18, 2, 24]})
+    geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions': [8, 24, 4, 18]})
     
     return warr_history, peers, vendor_data, juris_dict, geo_df
 
@@ -83,8 +82,6 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # --- TAB 1: EXECUTIVE CAPITAL REPORT ---
 with tab1:
     st.header("Executive Capital & Shareholder Value Report")
-    
-    # Capital Simulation
     recovery_lift = st.slider("Target Yield Optimization Lift (%)", 0, 10, 2)
     cet1_bps = ((165 * (1 + (recovery_lift/100))) / 13500) * 100
     
@@ -95,10 +92,9 @@ with tab1:
     c4.metric("Economic Profit", "$1.2B", "+5.2% YoY")
     
     st.divider()
-    st.subheader("Historical WARR Migration with Risk Trendlines")
+    st.subheader("Historical WARR Risk Migration with Risk Trendlines")
     fig_warr = px.bar(warr_df, x="Year", y="WARR", color="Segment", barmode="group",
                       color_discrete_map={'Branded Cards': '#007bff', 'Retail Services': '#ff4b4b'})
-    # Historical Trends
     fig_warr.add_trace(go.Scatter(x=['2023-24', '2024-25', '2025-26'], y=[1.05, 1.35, 1.22], name="Branded Trend", line=dict(color="#007bff", dash='dot')))
     fig_warr.add_trace(go.Scatter(x=['2023-24', '2024-25', '2025-26'], y=[5.20, 6.45, 6.10], name="Retail Trend", line=dict(color="#ff4b4b", dash='dot')))
     st.plotly_chart(fig_warr, use_container_width=True)
@@ -107,7 +103,7 @@ with tab1:
     p_df = warr_df.pivot(index="Year", columns="Segment", values="WARR").reset_index()
     p_df['Branded YoY %'] = p_df['Branded Cards'].pct_change() * 100
     p_df['Retail YoY %'] = p_df['Retail Services'].pct_change() * 100
-    # Clean Table
+    # FIXED: Index Hidden
     st.table(p_df.style.format({"Branded YoY %": "{:+.2f}%", "Retail YoY %": "{:+.2f}%"}).hide(axis="index"))
 
 # --- TAB 2: PEER STRATEGY & DYNAMIC STRESS ---
@@ -118,6 +114,7 @@ with tab2:
     col_t, col_g = st.columns([1, 1.5])
     with col_t:
         st.subheader("Peer Benchmarking")
+        # FIXED: Index Hidden
         st.dataframe(peer_df, hide_index=True, use_container_width=True)
     with col_g:
         m_val = {"Baseline": 0.2, "Mild": 0.5, "Moderate": 1.1, "Severely Adverse": 2.4}[stress_severity]
@@ -141,12 +138,10 @@ with tab3:
         st.plotly_chart(px.sunburst(vend_df, path=['Tier', 'Vendor Name'], values='Placement ($M)', color='Capital Drag (bps)', 
                                     color_continuous_scale='RdYlGn_r', title="Placement Volume vs. Capital Drag"), use_container_width=True)
 
-    st.info("""
-    **Strategic Insight: Why Tier 2 (Legal) carries higher 'Capital Drag'**
-    Tier 2 Legal partners manage accounts in litigation status. Under Basel III 'Loss Given Default' (LGD) models, legal-track inventory requires higher capital reserves during the 12-24 month recovery pipeline. This drag is a structural 'cost of carry' for a **3.4x yield premium** over debt sales.
-    """)
+    st.info("**Strategic Insight:** Tier 2 Legal partners manage litigation-track inventory. Under Basel III 'Loss Given Default' (LGD) models, legal-track inventory requires higher capital reserves. This drag is a structural 'cost of carry' for a **3.4x yield premium**.")
 
     st.subheader("📍 Active Vendor Governance")
+    # FIXED: Index Hidden
     st.dataframe(vend_df, hide_index=True, use_container_width=True)
 
     st.divider()
@@ -154,7 +149,6 @@ with tab3:
     s1, s2, s3 = st.columns(3)
     with s1: src = st.selectbox("From (Source):", vend_df['Vendor Name'], index=3)
     with s2: tgt = st.selectbox("To (Target):", vend_df['Vendor Name'], index=2)
-    # REPAIRED: Added index [0] to extract scalar value for math
     gain = (vend_df[vend_df['Vendor Name']==tgt]['Efficiency (%)'].iloc[0] - vend_df[vend_df['Vendor Name']==src]['Efficiency (%)'].iloc[0]) * 0.1
     with s3:
         st.metric("Net Recovery Gain/Loss", f"${gain:.2f}M", delta="on $10M shift")
@@ -172,7 +166,13 @@ with tab4:
     st.divider()
     st.subheader(f"📍 Risk Detail: {state}")
     info = juris_dict.get(state, juris_dict["Federal"])
-    risk_tbl = pd.DataFrame({"Category": ["Jurisdiction", "Risk Level", "Focus Area", "Status"], "Detail": [state, info['Risk'], info['Focus'], info['Update']]})
+    
+    # ADDED: Exception Volume Row
+    risk_tbl = pd.DataFrame({
+        "Strategic Category": ["Jurisdiction", "Risk Level", "Focus Area", "Total Exception Volume", "Status"],
+        "Detail": [state, info['Risk'], info['Focus'], f"{info['Vol']} Active Exceptions", info['Update']]
+    })
+    # FIXED: Index Hidden
     st.table(risk_tbl.style.hide(axis="index"))
 
 # --- TAB 5: LEAVE-BEHIND ---
