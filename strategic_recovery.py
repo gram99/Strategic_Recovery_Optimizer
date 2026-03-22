@@ -192,4 +192,3 @@ if check_password():
         st.write(f"- **Capital Impact:** Lift simulation adds **{cet1_bps:.2f} bps** to CET1 headroom.")
         st.write(f"- **Budget Control:** Spend at ${ytd_spend}M ({(ytd_spend/total_budget)*100:.1f}% capacity).")
         components.html("<script>function print_summary(){ window.print(); }</script><button onclick='print_summary()' style='background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;'>Download PDF Summary</button>", height=80)
-``` [1, 2, 3, 4]
