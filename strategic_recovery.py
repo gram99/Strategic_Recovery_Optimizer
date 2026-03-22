@@ -41,15 +41,15 @@ if check_password():
             'Current NCO (%)': [1.5, 1.9, 4.8, 2.1, 2.4]
         })
         
-        # Vendor & Budget Data
+        # Vendor & Budget Data - REPAIRED: Populated all missing values
         today = datetime.now().date()
         vendor_data = pd.DataFrame({
             'Vendor Name': ['NRG (National)', 'Apex Collections', 'Lexington Legal', 'Sterling Assets', 'Summit SME'],
             'Tier': ['Tier 1', 'Tier 1', 'Tier 2', 'Tier 2', 'Tier 3'],
-            'Efficiency (%)':,
-            'YTD Spend ($M)':,
-            'Capacity ($M)':,
-            'Renewal Date': [today + timedelta(days=x) for x in]
+            'Efficiency (%)': [92, 85, 68, 72, 81],
+            'YTD Spend ($M)': [120, 95, 45, 60, 35],
+            'Capacity ($M)': [150, 120, 80, 100, 50],
+            'Renewal Date': [today + timedelta(days=x) for x in [45, 120, 15, 200, 10]]
         })
         
         # Jurisdictional Data
@@ -60,7 +60,8 @@ if check_password():
             'FL': {'Risk': '🔴 Elevated', 'Focus': 'Debt Collection', 'Update': 'L2 drift remediation ongoing.'},
             'Federal': {'Risk': '🟡 Moderate', 'Focus': 'OCC Oversight', 'Update': 'Resource Review terminated Dec 2025.'}
         }
-        geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions':})
+        # REPAIRED: Populated missing exceptions
+        geo_df = pd.DataFrame({'State': ['NY', 'CA', 'TX', 'FL'], 'Exceptions': [4, 12, 2, 21]})
         
         return warr_history, peers, vendor_data, juris_dict, geo_df
 
@@ -68,7 +69,6 @@ if check_password():
 
     # 3. GLOBAL SIDEBAR
     with st.sidebar:
-        st.image("https://www.citigroup.com", width=80)
         st.header("Executive Hub")
         st.divider()
         if st.button("Logout"):
@@ -84,7 +84,6 @@ if check_password():
     with tab1:
         st.header("Executive Capital & Shareholder Value Report")
         
-        # Capital Simulation
         recovery_lift = st.slider("Target Yield Optimization Lift (%)", 0, 10, 2)
         cet1_bps = ((165 * (1 + (recovery_lift/100))) / 13500) * 100
         
@@ -95,44 +94,41 @@ if check_password():
         c4.metric("Economic Profit", "$1.2B", "+5.2% YoY")
         
         st.divider()
-        st.subheader("Historical WARR Migration with Risk Trendlines")
+        st.subheader("Historical WARR Migration with Segment Trendlines")
         
-        # Creating Bar Chart with Trendlines
         fig_warr = px.bar(warr_df, x="Year", y="WARR", color="Segment", barmode="group",
                           color_discrete_map={'Branded Cards': '#007bff', 'Retail Services': '#ff4b4b'})
         
-        # Adding Synthetic Trendlines for each segment
-        fig_warr.add_trace(go.Scatter(x=['2023-24', '2024-25', '2025-26'], y=[1.05, 1.35, 1.22], name="Branded Trend", line=dict(color="#007bff", dash='dot')))
-        fig_warr.add_trace(go.Scatter(x=['2023-24', '2024-25', '2025-26'], y=[5.20, 6.45, 6.10], name="Retail Trend", line=dict(color="#ff4b4b", dash='dot')))
-        
+        # ADDED: Two Trendlines for Storytelling
+        fig_warr.add_trace(go.Scatter(x=['2023-24', '2024-25', '2025-26'], y=[1.05, 1.35, 1.22], 
+                                      name="Branded Portfolio Trend", line=dict(color="#007bff", dash='dot')))
+        fig_warr.add_trace(go.Scatter(x=['2023-24', '2024-25', '2025-26'], y=[5.20, 6.45, 6.10], 
+                                      name="Retail Services Trend", line=dict(color="#ff4b4b", dash='dot')))
         st.plotly_chart(fig_warr, use_container_width=True)
 
-        st.subheader("Historical WARR Data Points")
-        st.dataframe(warr_df.pivot(index="Year", columns="Segment", values="WARR"), use_container_width=True)
+        st.subheader("Segment Data: Yearly WARR Values")
+        # FIXED: Pivot table to show segment values side-by-side
+        warr_pivot = warr_df.pivot(index="Year", columns="Segment", values="WARR")
+        st.dataframe(warr_pivot, use_container_width=True)
 
     # --- TAB 2: PEER STRATEGY & DYNAMIC STRESS ---
     with tab2:
         st.header("Competitive Advantage & Dynamic Stress Resilience")
-        st.markdown("> **The Story:** Adjust the slider to see how Citi's 'long-tail' recovery yield protects us during a macro shock.")
-        
         stress_severity = st.select_slider("Select Macro Scenario Severity", options=["Baseline", "Mild", "Moderate", "Severely Adverse"])
         
         col_table, col_graph = st.columns([1, 1.5])
-        
         with col_table:
-            st.subheader("Peer Benchmarking")
+            st.subheader("Peer Performance Table")
             st.dataframe(peer_df, hide_index=True, use_container_width=True)
 
         with col_graph:
-            # Dynamic Stress Logic
+            # FIXED: Dynamic Curve Logic
             multi = {"Baseline": 1.0, "Mild": 1.3, "Moderate": 1.8, "Severely Adverse": 2.8}[stress_severity]
             quarters = [f"Q{i} 2024" if i < 3 else f"Q{i-2} 2025" for i in range(1, 10)]
-            
-            # Curve calculation that actually reacts to the slider
             nco_base = 2.4
-            curve = [nco_base * (1 + (i*0.1) * (multi-0.5)) for i in range(len(quarters))]
+            curve = [nco_base * (1 + (i*0.08) * (multi-0.5)) for i in range(len(quarters))]
             
-            fig_stress = px.line(x=quarters, y=curve, title=f"9Q NCO Projection: {stress_severity} Environment",
+            fig_stress = px.line(x=quarters, y=curve, title=f"9Q NCO Projection: {stress_severity} Impact",
                                 labels={'x': 'Quarter', 'y': 'NCO Ratio (%)'})
             fig_stress.add_hline(y=8.0, line_dash="dash", line_color="red", annotation_text="DFAST Threshold")
             st.plotly_chart(fig_stress, use_container_width=True)
@@ -140,21 +136,20 @@ if check_password():
     # --- TAB 3: VENDOR MANAGEMENT & SPEEDOMETER ---
     with tab3:
         st.header("Vendor Performance & Budget Capacity")
-        
         total_budget = 500 
         ytd_spend = vend_df['YTD Spend ($M)'].sum()
         
-        # Restored Full-Size Speedometer
+        # RESTORED: Full-Size Speedometer
         fig_gauge = go.Figure(go.Indicator(
             mode = "gauge+number+delta", value = ytd_spend,
-            title = {'text': "Recovery OpEx Budget Utilization ($M)"},
+            title = {'text': "OpEx Budget Utilization ($M)"},
             delta = {'reference': total_budget, 'increasing': {'color': "red"}},
             gauge = {'axis': {'range': [None, total_budget]}, 
                      'bar': {'color': "#007bff"},
                      'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 450}}))
         st.plotly_chart(fig_gauge, use_container_width=True)
 
-        st.subheader("Active Vendor Network")
+        st.subheader("📍 Active Vendor Network")
         st.dataframe(vend_df, hide_index=True, use_container_width=True)
 
         st.divider()
@@ -163,8 +158,9 @@ if check_password():
         with s1: src = st.selectbox("From (Source):", vend_df['Vendor Name'], index=3)
         with s2: tgt = st.selectbox("To (Target):", vend_df['Vendor Name'], index=2)
         
-        gain = (vend_df[vend_df['Vendor Name']==tgt]['Efficiency (%)'].values - 
-                vend_df[vend_df['Vendor Name']==src]['Efficiency (%)'].values) * 0.1
+        # Calculation for $10M shift
+        gain = (vend_df[vend_df['Vendor Name']==tgt]['Efficiency (%)'].values[0] - 
+                vend_df[vend_df['Vendor Name']==src]['Efficiency (%)'].values[0]) * 0.1
         with s3:
             st.metric("Net Recovery Gain/Loss", f"${gain:.2f}M", delta="on $10M shift")
 
@@ -176,26 +172,24 @@ if check_password():
         
         state = "Federal"
         if sel and "selection" in sel and sel["selection"]["points"]:
-            state = sel["selection"]["points"]["location"]
+            state = sel["selection"]["points"][0]["location"]
         
         st.divider()
         st.subheader(f"Detailed Risk Matrix: {state}")
         info = juris_dict.get(state, juris_dict["Federal"])
         
-        # Hiding row index
         risk_tbl = pd.DataFrame({
             "Category": ["Jurisdiction", "Risk Level", "Focus Area", "Latest Status"],
             "Detail": [state, info['Risk'], info['Focus'], info['Update']]
         })
+        # FIXED: Hide row index to remove unlabelled numbers
         st.table(risk_tbl.style.hide(axis="index"))
 
     # --- TAB 5: LEAVE-BEHIND ---
     with tab5:
-        st.header("🖨️ Executive Leave-Behind")
+        st.header("Executive Leave-Behind")
         st.markdown("#### **Strategic Positioning Summary (Q1 2026)**")
-        st.write(f"- **Capital Impact:** Current lift simulation adds **{cet1_bps:.2f} bps** to CET1 headroom.")
-        st.write(f"- **Budget Control:** YTD Spend at ${ytd_spend}M ({(ytd_spend/total_budget)*100:.1f}% capacity).")
+        st.write(f"- **Capital Impact:** Lift simulation adds **{cet1_bps:.2f} bps** to CET1 headroom.")
+        st.write(f"- **Budget Control:** Spend at ${ytd_spend}M ({(ytd_spend/total_budget)*100:.1f}% capacity).")
         components.html("<script>function print_summary(){ window.print(); }</script><button onclick='print_summary()' style='background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;'>Download PDF Summary</button>", height=80)
-
-
-
+``` [1, 2, 3, 4]
