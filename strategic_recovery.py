@@ -16,34 +16,37 @@ def get_master_data():
     warr_history = pd.DataFrame({
         'Year': ['2023-24', '2023-24', '2024-25', '2024-25', '2025-26 (Current)', '2025-26 (Current)'],
         'Segment': ['Branded Cards', 'Retail Services', 'Branded Cards', 'Retail Services', 'Branded Cards', 'Retail Services'],
-        'WARR': [1.05, 5.20, 1.18, 5.95, 1.22, 6.10]
+        'WARR': [1.05, 5.20, 1.35, 6.45, 1.22, 6.10] # Showing the 'Stress Peak' in 24-25
     })
     
-    # Peer Benchmarking (2026 Waypoints)
+    # Peer Benchmarking
     peers = pd.DataFrame({
         'Bank': ['JPM Chase', 'Amex', 'Cap One', 'BofA', 'Citi (2026 Target)'],
         'ROTCE (%)': [22.0, 30.0, 15.2, 14.5, 10.5],
         'CET1 Ratio (%)': [15.1, 10.2, 13.2, 11.8, 12.3]
     }).sort_values('ROTCE (%)', ascending=False)
     
-    # 9Q DFAST Stress (Severely Adverse)
+    # 9Q DFAST Stress
     quarters = [f"Q{i} 2024" if i < 3 else f"Q{i-2} 2025" for i in range(1, 10)]
     nco_severe = [2.4, 3.8, 5.2, 7.1, 8.4, 7.9, 6.5, 5.1, 4.2] 
     stress_df = pd.DataFrame({'Quarter': quarters, 'Severely Adverse (9Q)': nco_severe})
     
-    # Vendor & Budget Data
+    # Strategic Vendor & Budget Data (FIXED: Added missing values)
+    today = datetime.now().date()
     vendor_data = pd.DataFrame({
         'Vendor Name': ['NRG (National)', 'Apex Collections', 'Lexington Legal', 'Sterling Assets', 'Summit SME'],
+        'Tier': ['Tier 1', 'Tier 1', 'Tier 2 (Legal)', 'Tier 2 (Legal)', 'Tier 3'],
         'Efficiency %':,
         'YTD Spend ($M)':,
         'Capacity ($M)':,
-        'Renewal Date': [datetime.now().date() + timedelta(days=x) for x in]
+        'Renewal Date': [today + timedelta(days=x) for x in]
     })
     
-    # Jurisdictional Map
+    # Jurisdictional Data
     juris_dict = {
         'NY': {'Risk': '🟡 Moderate', 'Focus': 'Fair Lending', 'Update': 'Data controls remediation Dec 2025.'},
         'CA': {'Risk': '🔴 High', 'Focus': 'Privacy/ADMT', 'Update': 'Jan 2026 CPPA audit active.'},
+        'TX': {'Risk': '🟢 Stable', 'Focus': 'Documentation', 'Update': 'Process aligned with national standards.'},
         'FL': {'Risk': '🔴 Elevated', 'Focus': 'Debt Collection', 'Update': 'L2 drift remediation ongoing.'},
         'Federal': {'Risk': '🟡 Moderate', 'Focus': 'OCC/Fed Oversight', 'Update': 'Resource Review terminated Dec 2025.'}
     }
@@ -70,7 +73,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # --- TAB 1: EXECUTIVE CAPITAL REPORT (WARR MIGRATION) ---
 with tab1:
     st.header("Executive Capital & Shareholder Value Report")
-    st.markdown("> **Strategic Context:** Recovery yield optimization acts as a capital engine, fueling our path to an **11% ROTCE**. This report tracks how our **WARR (Weighted Average Risk Rating)** has evolved as we transitioned from post-pandemic stability to inflationary optimization.")
+    st.markdown("> **The Story:** This report tracks how our **WARR (Weighted Average Risk Rating)** migrated from post-pandemic stability into the 2024 inflationary stress period, and our successful 2026 stabilization.")
     
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("CET1 Capital Ratio", "13.2%", "+160bps Buffer")
@@ -80,9 +83,8 @@ with tab1:
     
     st.divider()
     st.subheader("Historical WARR Risk Migration (2023 - 2026)")
-    # Visualizing how risk has moved over the requested timeframe
     fig_warr = px.bar(warr_df, x="Year", y="WARR", color="Segment", barmode="group",
-                      title="WARR Evolution by Portfolio Segment",
+                      title="WARR Evolution: Tracking the 2024 Stress Peak to 2026 Stabilization",
                       color_discrete_map={'Branded Cards': '#007bff', 'Retail Services': '#ff4b4b'})
     st.plotly_chart(fig_warr, use_container_width=True)
 
@@ -100,31 +102,34 @@ with tab2:
 with tab3:
     st.header("Vendor Performance & Budget Capacity")
     
-    # BUDGET GAUGE
-    total_budget = 500 # $500M fictional budget
+    # BUDGET GAUGE STORY
+    total_budget = 500 # $500M fictional OpEx budget
     ytd_spend = vend_df['YTD Spend ($M)'].sum()
     
-    b_col1, b_col2 = st.columns([1, 2])
+    b_col1, b_col2 = st.columns()
     with b_col1:
         fig_gauge = go.Figure(go.Indicator(
             mode = "gauge+number+delta",
             value = ytd_spend,
-            title = {'text': "Recovery OpEx Budget ($M)"},
+            title = {'text': "Recovery OpEx Budget Utilization ($M)"},
             delta = {'reference': total_budget, 'increasing': {'color': "red"}},
             gauge = {'axis': {'range': [None, total_budget]},
-                     'steps' : [{'range': [0, 400], 'color': "lightgray"},
-                                {'range': [400, 500], 'color': "gray"}],
+                     'bar': {'color': "#007bff"},
+                     'steps' : [{'range':, 'color': "lightgray"},
+                                {'range':, 'color': "gray"}],
                      'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 450}}))
         st.plotly_chart(fig_gauge, use_container_width=True)
     
     with b_col2:
-        st.subheader("Active Vendor Network & Contract Status")
+        st.subheader("Active Vendor Network Performance")
+        # Hiding index for a cleaner executive look
         st.dataframe(vend_df, hide_index=True, use_container_width=True)
-        st.info(f"**Budget Utilization:** {ytd_spend/total_budget*100:.1f}% used. Projected to finish year within +/- 2% of guidance.")
+        st.info(f"**Strategic Capacity:** {((total_budget - ytd_spend)/total_budget)*100:.1f}% budget remaining for Q3/Q4 placements.")
 
 # --- TAB 4: INTERACTIVE REGULATORY HEATMAP ---
 with tab4:
     st.header("Jurisdictional Governance")
+    st.markdown("**Click a state** to see localized remediation updates.")
     fig_map = px.choropleth(geo_df, locations='State', locationmode="USA-states", color='Exceptions', scope="usa", color_continuous_scale="Reds")
     sel = st.plotly_chart(fig_map, on_select="rerun")
     
@@ -133,12 +138,19 @@ with tab4:
         state = sel["selection"]["points"]["location"]
     
     risk_info = juris_dict.get(state, juris_dict["Federal"])
-    st.table(pd.DataFrame({"Category": ["Jurisdiction", "Risk", "Update"], "Detail": [state, risk_info['Risk'], risk_info['Update']]}).style.hide(axis="index"))
+    
+    risk_tbl = pd.DataFrame({
+        "Strategic Category": ["Jurisdiction", "Risk Level", "Focus Area", "Latest Status"],
+        "Details": [state, risk_info['Risk'], risk_info['Focus'], risk_info['Update']]
+    })
+    st.table(risk_tbl.style.hide(axis="index"))
 
 # --- TAB 5: LEAVE-BEHIND ---
 with tab5:
     st.header("🖨️ Executive Leave-Behind")
-    st.markdown("#### **Strategic Positioning (March 2026)**")
-    st.write(f"- **Budget Discipline:** OpEx spend currently at ${ytd_spend}M ({(ytd_spend/total_budget)*100:.1f}% capacity).")
-    st.write("- **Risk Stability:** WARR migration into 2026 shows stabilizing credit quality in Branded Cards.")
+    st.markdown("#### **Strategic Positioning Summary (Q1 2026)**")
+    st.write(f"- **Budget Performance:** YTD Spend at ${ytd_spend}M vs ${total_budget}M cap.")
+    st.write("- **Portfolio Health:** WARR stabilizes at 1.22 (Branded) following 2024 optimization.")
+    st.write("- **Capital Impact:** RWA optimization strategies contributing +160bps to CET1 buffer.")
+    
     components.html("<script>function print_summary() { window.print(); }</script><button onclick='print_summary()' style='background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;'>Download PDF Summary</button>", height=100)
