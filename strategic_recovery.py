@@ -7,15 +7,15 @@ from datetime import datetime, timedelta
 import streamlit.components.v1 as components
 
 # 1. PAGE CONFIGURATION
-st.set_page_config(page_title="Citi Strategic Recovery & Capital Optimizer", layout="wide")
+st.set_page_config(page_title="Strategic Recovery & Capital Optimizer", layout="wide")
 
 # --- LOGIN GATEWAY ---
 if "password_correct" not in st.session_state:
-    st.title("🏦 Citi Recovery Strategy Gateway")
+    st.title("Recovery Strategy Gateway")
     st.markdown("### **Executive Access Required**")
     st.text_input("Enter Access Code:", type="password", key="password_input")
     if st.button("Login"):
-        if st.session_state["password_input"] == "Citi2026":
+        if st.session_state["password_input"] == "Recovery2026":
             st.session_state["password_correct"] = True
             st.rerun()
         else:
@@ -67,7 +67,6 @@ warr_df, peer_df, vend_df, juris_dict, geo_df = get_master_data()
 
 # 3. GLOBAL SIDEBAR
 with st.sidebar:
-    st.image("https://www.citigroup.com", width=80)
     st.header("Executive Hub")
     st.divider()
     if st.button("Logout"):
@@ -126,7 +125,7 @@ with tab2:
 
 # --- TAB 3: VENDOR MANAGEMENT ---
 with tab3:
-    st.header("🏢 Vendor Performance & Capital Optimization")
+    st.header("Vendor Performance & Capital Optimization")
     
     col_gauge, col_sun = st.columns([1, 1.2])
     with col_gauge:
@@ -145,7 +144,7 @@ with tab3:
     st.dataframe(vend_df, hide_index=True, use_container_width=True)
 
     st.divider()
-    st.subheader("🔄 Strategic Placement Swap Simulator")
+    st.subheader("Strategic Placement Swap Simulator")
     s1, s2, s3 = st.columns(3)
     with s1: src = st.selectbox("From (Source):", vend_df['Vendor Name'], index=3)
     with s2: tgt = st.selectbox("To (Target):", vend_df['Vendor Name'], index=2)
@@ -177,7 +176,7 @@ with tab4:
 
 # --- TAB 5: LEAVE-BEHIND ---
 with tab5:
-    st.header("🖨️ Executive Leave-Behind")
+    st.header("Executive Leave-Behind")
     st.markdown("#### **Strategic Positioning Summary (Q1 2026)**")
     st.write(f"- **Capital Impact:** Yield optimization adds **{cet1_bps:.2f} bps** to CET1 headroom.")
     st.write("- **Historical Context:** Proactive 2024 optimization stabilized risk velocity in Branded Cards.")
