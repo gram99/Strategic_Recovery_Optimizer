@@ -16,11 +16,13 @@ In a shifting macro environment, managing "Capital Drag" is as critical as manag
 
 **Dynamic Stress Testing**: A 9-quarter NCO projection engine that overlays peer benchmarking (JPM, Amex, etc.) against custom macro-economic severity sliders.
 
-**Vendor Governance & Placement Simulator**:Sunburst Analytics: Visualizing the relationship between Tiered vendors, placement volume, and "Capital Drag" (bps).
+**Vendor Governance & Placement Simulator**:
 
-**Swap Simulator**: A "what-if" tool to calculate the net recovery gain of shifting inventory between agencies.
+  **Sunburst Analytics**: Visualizing the relationship between Tiered vendors, placement volume, and "Capital Drag" (bps).
 
-**Jurisdictional Heatmap**: A Choropleth-based regulatory tracker for monitoring state-level exceptions and audit updates (e.g., CPPA audits in CA).
+  **Swap Simulator**: A "what-if" tool to calculate the net recovery gain of shifting inventory between agencies.
+
+  **Jurisdictional Heatmap**: A Choropleth-based regulatory tracker for monitoring state-level exceptions and audit updates (e.g., CPPA audits in CA).
 
 💻 **Technical ArchitectureUI/UX**: Streamlit with a custom CSS-in-Python "Executive Gateway" login.
 
