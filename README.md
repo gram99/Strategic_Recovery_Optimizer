@@ -40,3 +40,31 @@ In a shifting macro environment, managing "Capital Drag" is as critical as manag
 This PoC is protected by an executive gateway:
 
 Access Code: Recovery2026
+
+
+**📊 KPI Glossary:** Understanding the Financial EngineTo provide context for the metrics calculated within this PoC, the following definitions align with standard banking and recovery operations:
+
+**Capital & Profitability Metrics**
+
+**CET1 (Common Equity Tier 1) Ratio**: The primary measure of a bank's financial strength. In this app, we simulate how increasing Recovery Lift reduces Risk-Weighted Assets (RWA), effectively "freeing up" capital.
+
+**ROTCE (Return on Tangible Common Equity)**: A key performance metric for shareholders. The dashboard tracks the 10.5% target, showing how recovery efficiency contributes to the bottom line.
+
+**Economic Profit**: The profit remaining after subtracting the cost of capital. The tool calculates a 5.2% YoY increase based on optimized recovery strategies.
+
+**Recovery & Risk Metrics**
+
+**WARR (Weighted Average Recovery Rate)**: The primary KPI for the Recovery department. It measures the percentage of charged-off principal that is successfully recovered through collections or legal action.
+
+**NCO (Net Charge-Off) Projection**: The estimated percentage of loans unlikely to be recovered. The Stress Simulator projects this over a 9-quarter horizon to test resilience against "Severely Adverse" economic shifts.
+
+**Capital Drag (bps)**: Measured in basis points. This represents the "cost of carry" for inventory. For example, legal-track inventory (Tier 2) has a higher capital drag due to longer liquidation timelines but often yields a higher recovery premium.
+
+**Operational MetricsPlacement Volume**: The total dollar amount of debt assigned to a specific vendor (NRG, Apex, etc.).
+
+**Efficiency (%)**: The vendor's success rate in hitting recovery targets relative to their peers in the same Tier.
+
+**Yield Premium**: The additional recovery percentage gained by using higher-cost legal channels versus standard collection agencies.
+
+
+**Disclaimer**: _All data presented in this PoC is synthetic and intended for architectural demonstration purposes only._
