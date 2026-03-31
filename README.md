@@ -1,5 +1,5 @@
-🏛️ **Strategic Recovery & Capital Optimizer (PoC)
-**
+**🏛️ Strategic Recovery & Capital Optimizer (PoC)**
+
 The Strategic Recovery & Capital Optimizer is an executive-grade decision-support portal designed for banking leadership and risk committees. It provides a unified view of recovery strategies, capital adequacy (CET1), and vendor performance, specifically tailored for the Basel III / Basel IV regulatory landscape.
 
 📈 **Business Value Proposition**
@@ -30,8 +30,8 @@ In a shifting macro environment, managing "Capital Drag" is as critical as manag
 
 **Calculations**: Custom financial logic for CET1 basis point (bps) impact and yield premium analysis.
 
-🔐 **Access Credentials
-**
+**🔐 Access Credentials**
+
 This PoC is protected by an executive gateway:
 
 Access Code: Recovery2026
